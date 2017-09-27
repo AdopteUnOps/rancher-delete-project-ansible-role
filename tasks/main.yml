@@ -1,5 +1,4 @@
 ---
----
 - name: Verify if project exists
   stat: path="{{ inventory_dir }}/group_vars/{{ rancher_project_name }}/apikey.yml"
   register: project_file
