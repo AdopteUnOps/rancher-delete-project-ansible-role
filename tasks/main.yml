@@ -1,0 +1,37 @@
+---
+---
+- name: Verify if project exists
+  stat: path="{{ inventory_dir }}/group_vars/{{ rancher_project_name }}/apikey.yml"
+  register: project_file
+  delegate_to: localhost
+
+- include_vars: "{{ inventory_dir }}/group_vars/{{ rancher_project_name }}/apikey.yml"
+  when: project_file.stat.exists
+
+- name: Deactivate the project
+  uri:
+    method: POST
+    status_code: 200,422
+    user: "{{ rancher_api_key }}"
+    password: "{{ rancher_api_secret }}"
+    url: "{{rancher_master_url}}/v1/projects/{{ rancher_project_id }}/?action=deactivate"
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+  when: project_file.stat.exists
+
+- name: Delete the project
+  uri:
+    method: DELETE
+    status_code: 200,404
+    user: "{{ rancher_api_key }}"
+    password: "{{ rancher_api_secret }}"
+    url: "{{rancher_master_url}}/v1/projects/{{ rancher_project_id }}"
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+  when: project_file.stat.exists
+
+- name: Delete project configuration
+  file: path="{{ inventory_dir }}/group_vars/{{ rancher_project_name }}" state=absent
+  delegate_to: localhost
